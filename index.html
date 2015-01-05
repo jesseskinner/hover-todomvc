@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>Hoverboard + ReactJS • TodoMVC</title>
+		<link rel="stylesheet" href="bower_components/todomvc-common/base.css">
+		<!-- CSS overrides - remove if you don't need it -->
+		<link rel="stylesheet" href="css/app.css">
+	</head>
+	<body>
+		<section id="todoapp"></section>
+		<footer id="info">
+			<p>Double-click to edit a todo</p>
+			<!-- Remove the below line ↓ -->
+			<p>Template by <a href="http://github.com/sindresorhus">Sindre Sorhus</a></p>
+			<p>Created by <a href="http://www.thefutureoftheweb.com">Jesse Skinner</a></p>
+			<p>Part of <a href="http://todomvc.com">TodoMVC</a></p>
+		</footer>
+		<!-- Scripts here. Don't remove this ↓ -->
+		<!-- <script src="bower_components/todomvc-common/base.js"></script> -->
+		<script src="bower_components/lodash/dist/lodash.js"></script>
+		<script src="bower_components/page/page.js"></script>
+		<script src="bower_components/react/react-with-addons.js"></script>
+		<script src="bower_components/react/JSXTransformer.js"></script>
+		<script src="bower_components/hoverboard-flux/dist/hoverboard.js"></script>
+
+		<!-- Hoverboard stores -->
+		<script src="js/stores/page.js"></script>
+		<script src="js/stores/todo.js"></script>
+		<script src="js/stores/filters.js"></script>
+		<script src="js/stores/app.js"></script>
+
+		<!-- use page.js as router -->
+		<script src="js/router.js"></script>
+		
+		<!-- React.js components -->
+		<script type="text/jsx" src="js/components/TodoApp.react.js"></script>
+		<script type="text/jsx" src="js/components/TodoItem.react.js"></script>
+
+		<!-- wire things together (text/jsx so it loads after components) -->
+		<script type="text/jsx" src="js/index.js"></script>
+	</body>
+</html>

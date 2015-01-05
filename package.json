@@ -1,0 +1,19 @@
+{
+  "name": "hoverboard-todomvc",
+  "version": "0.0.1",
+  "description": "Implementing TodoMVC with hoverboard and React.",
+  "main": "index.html",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jesseskinner/hoverboard-todomvc.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jesseskinner/hoverboard-todomvc/issues"
+  },
+  "homepage": "https://github.com/jesseskinner/hoverboard-todomvc"
+}
