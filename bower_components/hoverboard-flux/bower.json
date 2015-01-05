@@ -1,0 +1,28 @@
+{
+  "name": "hoverboard-flux",
+  "main": "dist/hoverboard.js",
+  "version": "0.1.3",
+  "homepage": "https://github.com/jesseskinner/hoverboard",
+  "description": "A simple and very terse Flux implementation. The future is here.",
+  "moduleType": [
+    "node"
+  ],
+  "keywords": [
+    "flux",
+    "javascript"
+  ],
+  "authors": [
+    "Jesse Skinner <jesse@thefutureoftheweb.com>"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "src",
+    "test",
+    "package.json",
+    "README.md"
+  ],
+  "dependencies": {}
+}
