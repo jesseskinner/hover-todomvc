@@ -11,6 +11,9 @@ A very lightweight (anti-gravity?) data model and [Flux](https://facebook.github
 
 You can use either npm or bower to install Hoverboard, or [download the standalone files here](https://github.com/jesseskinner/hoverboard/tree/master/dist).
 
+For more information, check out the [Concept](#concept), [Usage](#usage), [Documentation](#documentation) and [FAQ](#faq) below.
+
+
 ```
 npm install hoverboard
 ```
@@ -35,11 +38,9 @@ UserProfileStore.getState(function (state) {
 });
 ```
 
-Worried about your state being mutated? Every time `getState` is called, a fresh copy of your state is returned. And every time `setState` is called, or an action handler is called, a fresh copy is made for you to work with inside the store. So you get the simplicity of JavaScript objects and protection from leaky pointers. Hoverboard uses serialization to destroy any object pointers and keep your state fresher longer.
+Worried about your state being mutated? You can easily provide a custom `getState` function that will be called every time `setState` is called, or an action handler is called, to help prevent mutation or enforce immutability.
 
 Hoverboard was inspired by other Flux implementations, like [Alt](https://github.com/goatslacker/alt) and [Reflux](https://github.com/spoike/refluxjs). Those versions are very lightweight, but Hoverboard is practically weightless.
-
-For more information, check out the [Usage](#usage), [Documentation](#documentation) and [FAQ](#faq) below.
 
 ## Usage
 
@@ -52,6 +53,10 @@ var ClickCounter = Hoverboard({
 			value: 0,
 			log: []
 		};
+	},
+	getState: function (state) {
+		// add protection from mutation by making a copy
+		return JSON.parse(JSON.stringify(state));
 	},
 	onClick: function (text) {
 		this.state.value++;
@@ -139,16 +144,31 @@ actions = Hoverboard(store);
 
 - `store.getInitialState` (optional)
 
-	- Must return an object containing the initial state for the store.
+	- Should return the initial state for the store.
 
 	- Will not be called until `getState` is called, or an action is handled. So it can be a good place to start loading data from an API.
-
-	- Note: the state must be serializable. This means you cannot have functions or classes in your state.
 
 		```javascript
 		actions = Hoverboard({
 			getInitialState: function(){
 				return { list: [] };
+			}
+		});
+		```
+
+- `store.getState(state)` (optional)
+
+	- Will be passed the current state, and should return the state to be exposed.
+
+	- Will be called any time the state is updated or requested from `api.getState()`.
+
+	- Will also be called to update `this.state` before every action handler.
+
+		```javascript
+		actions = Hoverboard({
+			getState: function (state) {
+				// use serialization to prevent mutation
+				return JSON.parse(JSON.stringify(state));
 			}
 		});
 		```
@@ -175,11 +195,12 @@ actions = Hoverboard(store);
 
 - `this.state` - object property
 
-	- Contains a copy of the current state object. A new copy is made every time `setState` or an action handler are called.
+	- Contains the current state of the store. If a custom `store.getState` is provided,
+	it will be called to set the value of `this.state` before every action.
 
-	- If you make changes to `this.state`, they will not affect the store's state. Be sure to use `this.setState(state)` to save the state.
+	- Be sure to use `this.setState(state)` to save the state and notify state listeners.
 
-	- Note: `this.state` is not available in the function constructor of a `store`. Use `this.getState()` here instead.
+	- Note: `this.state` is not available in the function constructor of a `store`. Use `this.getState()` there instead.
 
 		```javascript
 		Hoverboard({
@@ -194,6 +215,8 @@ actions = Hoverboard(store);
 
 	- Returns the current state object. Similar to accessing `this.state`.
 
+	- If a custom `store.getState()` is provided, it will be called here.
+
 		```javascript
 		Hoverboard(function(){
 			var state = this.getState();
@@ -204,9 +227,11 @@ actions = Hoverboard(store);
 
 - `this.setState(partialState)`
 
-	- Updates the store's state, merging the properties in `partialState` to the store's state.
+	- Updates the store's state.
 
-	- Note: the state must be serializable. This means you cannot have functions or classes in your state.
+	- If `this.state` and `partialState` are both objects, the properties will be merged.
+
+	- If state is not an object, the store's state will be replaced.
 
 		```javascript
 		Hoverboard({
@@ -225,9 +250,7 @@ actions = Hoverboard(store);
 
 	- Replaces the store's state with `newState` object.
 
-	- Similar to `setState` except it erases the previous state before updating.
-
-	- Note: the state must be serializable. This means you cannot have functions or classes in your state.
+	- Similar to `setState` except it always erases the previous state before updating.
 
 		```javascript
 		Hoverboard({
@@ -250,7 +273,9 @@ actions = Hoverboard(store);
 
 - `actions.getState()`
 
-	- Returns a copy of the store's current state.
+	- Returns the store's current state.
+
+	- If a custom `store.getState()` is provided, it will be called here.
 
 		```javascript
 		state = actions.getState();
@@ -315,7 +340,7 @@ As other frameworks start adopting React's strategy of updating the DOM, Hoverbo
 will be a good fit to use with those frameworks as well.
 
 Check out [virtual-dom](https://github.com/Matt-Esch/virtual-dom) as an alternative
-to use React in your projects.
+to using React in your projects.
 
 ---
 
@@ -343,7 +368,6 @@ var Store = Hoverboard({
 	onError: function(error) {
 		this.setState({ error: error });
 	}
-}
 });
 
 Store.loading(true);
@@ -378,6 +402,50 @@ var Store = Hoverboard({
 		return { isLoading: true, data: null, error: null };
 	}
 });
+```
+
+---
+
+*Q: If Hoverboard stores only have a single getter, how can I have both getAll and getById?*
+
+You can use actions and state. If you have a list of items, and want to view a single item,
+then you might want to have an items property that contains the list, and an item property
+that contains the item you need. Something like this:
+
+```javascript
+var ItemStore = Hoverboard({
+	onItems: function (items) {
+		this.setState({ items: items });
+
+		// update item whenever list of items changes
+		this.updateItem();
+	},
+	onViewById: function (id) {
+		this.setState({ id: id });
+
+		// update item whenever ID changes
+		this.updateItem();
+	},
+	updateItem: function() {
+		var item = null;
+
+		if (this.state.id && this.state.items) {
+			// using underscore for this example for simplicity
+			item = _.find(this.state.items, { id: this.state.id });
+		}
+
+		this.setState({ item: item });
+	}
+});
+
+ItemStore.items([{ id: 123 /* ... */ }]);
+
+// getAll
+var items = ItemStore.getState().items;
+
+// getById
+ItemStore.viewById(123);
+var item = ItemStore.getState().item;
 ```
 
 ---
