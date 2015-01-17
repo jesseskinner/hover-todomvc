@@ -1,7 +1,7 @@
 {
   "name": "hoverboard-flux",
   "main": "dist/hoverboard.js",
-  "version": "1.2.4",
+  "version": "1.2.6",
   "homepage": "https://github.com/jesseskinner/hoverboard",
   "description": "A simple and very terse Flux implementation. The future is here.",
   "moduleType": [
@@ -24,11 +24,11 @@
     "package.json"
   ],
   "dependencies": {},
-  "_release": "1.2.4",
+  "_release": "1.2.6",
   "_resolution": {
     "type": "version",
-    "tag": "v1.2.4",
-    "commit": "00457cbcc71d774a32df0fdfdd9e58e09b68be0d"
+    "tag": "v1.2.6",
+    "commit": "17fad9fe443483b1afb201ddb184baff0943ed84"
   },
   "_source": "git://github.com/jesseskinner/hoverboard.git",
   "_target": "~1.2.0",
