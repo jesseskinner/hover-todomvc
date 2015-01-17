@@ -1,7 +1,7 @@
 // create a store for managing the app state
 // it will listen to other stores and assemble state data appropriately
 AppStore = Hoverboard(function () {
-	var setState = this.setState;
+	var self = this;
 
 	// every time these stores change, update the state
 	TodoStore.getState(update);
@@ -29,7 +29,7 @@ AppStore = Hoverboard(function () {
 		}
 
 		// expose public state
-		setState({
+		self.setState({
 			// which page we're currently on
 			page: page,
 
