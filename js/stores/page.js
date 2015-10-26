@@ -1,5 +1,5 @@
 // keep track of the current page
-PageStore = Hoverboard({
+var PageStore = Hoverboard({
 	load: function (state, page) {
 		return {
 			page: page

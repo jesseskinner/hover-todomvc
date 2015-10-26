@@ -12,7 +12,7 @@ function updateItem(list, id, props) {
 }
 
 // create a store to manage the full list of todos
-TodoStore = Hoverboard({
+var TodoStore = Hoverboard({
 	init: function (state, list) {
 		// TodoStore.init(list) initialize the state with a todo list (ie. from storage)
 		if (list && list.length) {

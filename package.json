@@ -15,5 +15,14 @@
   "bugs": {
     "url": "https://github.com/jesseskinner/hoverboard-todomvc/issues"
   },
-  "homepage": "https://github.com/jesseskinner/hoverboard-todomvc"
+  "homepage": "https://github.com/jesseskinner/hoverboard-todomvc",
+  "dependencies": {
+    "babel-core": "^5.8.29",
+    "hoverboard": "^2.0.2",
+    "lodash": "^3.10.1",
+    "page": "^1.6.4",
+    "react": "^0.14.0",
+    "react-dom": "^0.14.0",
+    "todomvc-common": "^0.1.4"
+  }
 }

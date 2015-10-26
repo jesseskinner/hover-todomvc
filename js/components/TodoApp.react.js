@@ -1,4 +1,4 @@
-var TodoApp = React.createClass({
+window.TodoApp = React.createClass({
 	onAddKeyPress: function (event) {
 		// when enter key is pressed
 		if (event.which === ENTER_KEY) {

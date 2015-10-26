@@ -6,8 +6,8 @@ var ListStore = {
 };
 
 // create stores to contain the active and completed todos
-ActiveStore = Hoverboard(ListStore);
-CompletedStore = Hoverboard(ListStore);
+var ActiveStore = Hoverboard(ListStore);
+var CompletedStore = Hoverboard(ListStore);
 
 TodoStore.getState(function (state) {
 	var all = state.list;

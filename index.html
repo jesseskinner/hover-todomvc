@@ -3,7 +3,7 @@
 	<head>
 		<meta charset="utf-8">
 		<title>Hoverboard + ReactJS • TodoMVC</title>
-		<link rel="stylesheet" href="bower_components/todomvc-common/base.css">
+		<link rel="stylesheet" href="node_modules/todomvc-common/base.css">
 		<!-- CSS overrides - remove if you don't need it -->
 		<link rel="stylesheet" href="css/app.css">
 	</head>
@@ -17,12 +17,13 @@
 			<p>Part of <a href="http://todomvc.com">TodoMVC</a></p>
 		</footer>
 		<!-- Scripts here. Don't remove this ↓ -->
-		<!-- <script src="bower_components/todomvc-common/base.js"></script> -->
-		<script src="bower_components/lodash/dist/lodash.js"></script>
-		<script src="bower_components/page/page.js"></script>
-		<script src="bower_components/react/react-with-addons.js"></script>
-		<script src="bower_components/react/JSXTransformer.js"></script>
-		<script src="bower_components/hoverboard-flux/dist/hoverboard.js"></script>
+		<!-- <script src="node_modules/todomvc-common/base.js"></script> -->
+		<script src="node_modules/babel-core/browser.js"></script>
+		<script src="node_modules/lodash/index.js"></script>
+		<script src="node_modules/page/page.js"></script>
+		<script src="node_modules/react/dist/react.js"></script>
+		<script src="node_modules/react-dom/dist/react-dom.js"></script>
+		<script src="node_modules/hoverboard/dist/hoverboard.js"></script>
 
 		<!-- Hoverboard stores -->
 		<script src="js/stores/page.js"></script>
@@ -34,10 +35,10 @@
 		<script src="js/router.js"></script>
 		
 		<!-- React.js components -->
-		<script type="text/jsx" src="js/components/TodoApp.react.js"></script>
-		<script type="text/jsx" src="js/components/TodoItem.react.js"></script>
+		<script type="text/babel" src="js/components/TodoItem.react.js"></script>
+		<script type="text/babel" src="js/components/TodoApp.react.js"></script>
+		<script type="text/babel" src="js/index.js"></script>
 
-		<!-- wire things together (text/jsx so it loads after components) -->
-		<script type="text/jsx" src="js/index.js"></script>
+		<!-- wire things together (text/babel so it loads after components) -->
 	</body>
 </html>

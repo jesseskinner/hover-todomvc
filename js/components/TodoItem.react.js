@@ -1,4 +1,4 @@
-var TodoItem = React.createClass({
+window.TodoItem = React.createClass({
 	onEdit: function () {
 		TodoStore.edit(this.props.item.id);
 	},
