@@ -46,7 +46,7 @@ var TodoItem = React.createClass({
 			className = this.getClassName();
 
 		return (
-			<li className={className}>
+			<li className={className} key={item.id}>
 				<div className="view">
 					<input onChange={this.onToggleComplete} className="toggle"
 						type="checkbox" checked={item.completed}/>

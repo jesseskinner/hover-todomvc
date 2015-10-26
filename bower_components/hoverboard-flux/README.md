@@ -26,57 +26,61 @@ bower install hoverboard-flux
 
 Hoverboard greatly simplifies [Flux](https://facebook.github.io/flux/) while staying true to the concept.
 
-Hoverboard() takes a store definition, and returns actions automatically. Hoverboard will create actions for all the action handlers you define. What's an action handler? It's a function that starts with the letters "on" followed by an upper case letter (in regexp speak, `/^on[A-Z]/`). For example, if you have `onSomeAction()`, Hoverboard will automatically create an action called `someAction()`. Any other methods are kept private and won't be exposed to the public, so you can sleep with ease.
-
-Hoverboard also makes it incredibly easy to watch the state of a store. You just call getState, pass in a function, and it'll be called immediately at first, and again whenever the state changes. This works great with React.js, because you can easily re-render your component whenever the store changes its state. Now you can finally ditch those "Controller-Views".
+The basic usage of Hoverboard is:
 
 ```javascript
-UserProfileStore.getState(function (state) {
-	var element = React.createElement(UserProfile, state);
+var store = Hoverboard(actions);
+```
 
-	React.render(element, document.body);
+Hoverboard makes it incredibly easy to subscribe to state changes. You can add a listener by calling the model as a function. Your callback will be called immediately at first, and again whenever the state changes. This works great with React.js, because you can easily re-render your component whenever the store changes its state. You can keep your components stateless, and ditch those "Controller-Views".
+
+```javascript
+store.getState(function (props) {
+	React.render(
+		<UserProfile {...props} actions={actions} />,
+		document.getElementById('user-profile')
+	);
 });
 ```
 
-Worried about your state being mutated? You can easily provide a custom `getState` function that will be called every time `setState` is called, or an action handler is called, to help prevent mutation or enforce immutability.
+Worried about your state being mutated? Hoverboard will always create a copy of your state using
+a shallow merge before passing to your store's subscribers or action reducers.
 
-Hoverboard was inspired by other Flux implementations, like [Alt](https://github.com/goatslacker/alt) and [Reflux](https://github.com/spoike/refluxjs). Those versions are very lightweight, but Hoverboard is practically weightless.
+Hoverboard was inspired by other Flux implementations, like [Redux](https://github.com/reakt/redux), [Alt](https://github.com/goatslacker/alt) and [Reflux](https://github.com/spoike/refluxjs). Those versions are very lightweight, but Hoverboard is practically weightless.
 
 ## Usage
 
-The following example uses pretty much all of Hoverboard's functionality.
+Here's how you might use Hoverboard to keep track of clicks with a ClickCounter.
 
 ```javascript
 var ClickCounter = Hoverboard({
-	getInitialState: function () {
+	click: function(state, text) {
+		return {
+			value: state.value + 1,
+			log: state.log.concat(text)
+		};
+	},
+	reset: function() {
+		// go back to defaults
 		return {
 			value: 0,
 			log: []
 		};
-	},
-	getState: function (state) {
-		// add protection from mutation by making a copy
-		return JSON.parse(JSON.stringify(state));
-	},
-	onClick: function (text) {
-		this.state.value++;
-		this.state.log.push(text);
-
-		// need to call setState to make it permanent & notify listeners
-		this.setState(this.state);
-	},
-	onReset: function () {
-		this.replaceState(this.getInitialState());
 	}
 });
 
+// initialize with defaults
+ClickCounter.reset();
+
 // listen to changes to the state
-var unsubscribe = ClickCounter.getState(function(clickState){
+var unsubscribe = ClickCounter(function (clickState) {
 	document.write(JSON.stringify(clickState) + "<br>");
 });
 
 ClickCounter.click('first');
 ClickCounter.click('second');
+
+// reset back to empty state
 ClickCounter.reset();
 
 unsubscribe();
@@ -103,180 +107,58 @@ Hoverboard is a function that takes a store as a single parameter, either an obj
 ### Syntax
 
 ```javascript
-actions = Hoverboard(store);
+store = Hoverboard(actions);
 ```
 
-#### `store` parameter
+#### `actions` parameter
 
-`store` can either be an object or a function.
-
-- If passed a function, Hoverboard will create the store by instantiating the function with `new store()`.
-
-- If passed an object, Hoverboard will set the object as the `prototype` of an empty function, and instantiate that.
-
-- Either way, your store will end up as an instance of a function.
+- Any properties of the actions object will be exposed as methods on the returned `store` object.
+- Note that the actions will receive `state` as the first parameter, but the methods do not.
 
 	```javascript
 	actions = Hoverboard({
-		onSomeAction: function(){
-			this.setState({ year: 1955 });
+		hideItem: function(state, id) {
+			var items = state.items;
+
+			items[id].hidden = true;
+		
+			// return the new state
+			return { items: items };
+		},
+
+		items: function(state, items) {
+			return { items: items };
+		},
+
+		error: function(state, error) {
+			return { error: error };
 		}
 	});
-	```
 
-	```javascript
-	actions = Hoverboard(function(){
-		this.setState({ year: 1985 });
+	// you could load the store contents asynchronously and pass in as action
+	api.getItems(function (error, items) {
+		if (error) {
+			return actions.error(error);
+		}
+
+		actions.items(items);
 	});
+
+	// later
+	actions.hideItem("abc");
 	```
-
-	```javascript
-	var StoreClass = function(){};
-
-	StoreClass.prototype.onSomeAction = function(){
-		this.setState({ year: 2015 });
-	};
-
-	actions = Hoverboard(StoreClass);
-	```
-
-##### `store` - user defined properties
-
-- `store.getInitialState` (optional)
-
-	- Should return the initial state for the store.
-
-	- Will not be called until `getState` is called, or an action is handled. So it can be a good place to start loading data from an API.
-
-		```javascript
-		actions = Hoverboard({
-			getInitialState: function(){
-				return { list: [] };
-			}
-		});
-		```
-
-- `store.getState(state)` (optional)
-
-	- Will be passed the current state as a parameter.
-
-	- Will be used to get the state returned by both `api.getState()` and `this.getState()`.
-
-		```javascript
-		actions = Hoverboard({
-			getState: function (state) {
-				// use serialization to prevent mutation
-				return JSON.parse(JSON.stringify(state));
-			}
-		});
-		```
-
-- `store.onHandleSomeAction` (optional)
-
-	- Any methods with a name like `onFooBar()` (matching `/^on[A-Z]/`) are action handlers, and will be exposed as actions in the returned `actions` object. So `onaction()` will **not** be turned into an action, but `onAction()` will.
-
-	- Specifically, the action names will not have the "on" at the start, and the first character will be lower-case. So `onFooBar()` will be accessible as `fooBar()`.
-
-	- Note: actions cannot be called from other actions, even actions in different stores.
-
-		```javascript
-		actions = Hoverboard({
-			onAddItem: function(text){
-				// add item to database
-			}
-		});
-
-		actions.addItem("abc");
-		```
-
-##### `store` internal methods and properties
-
-- `this.state` - object property
-
-	- Contains the current internal state of the store.
-
-	- Be sure to use `this.setState(state)` to save the state and notify state listeners.
-
-	- Note: `this.state` is not available in the function constructor of a `store`.
-
-		```javascript
-		Hoverboard({
-			onSomeAction: function(){
-				this.state.newValue = 123;
-				this.setState(this.state);
-			}
-		});
-		```
-		
-- `this.getState()`
-
-	- Returns the current public state object. Similar to calling `api.getState()`.
-
-	- If a custom `store.getState()` is provided, it will be called here.
-
-		```javascript
-		Hoverboard(function(){
-			var state = this.getState();
-			state.newValue = 123;
-			this.setState(state);
-		});
-		```
-
-- `this.setState(partialState)`
-
-	- Updates the store's state.
-
-	- If `this.state` and `partialState` are both objects, the properties will be merged. Otherwise, the store's state will be replaced.
-
-		```javascript
-		Hoverboard({
-			getInitialState: function(){
-				return { sky: 'blue' };
-			},
-			onSomeAction: function(){
-				this.setState({ grass: 'green' });
-
-				// this.state is now: { sky: 'blue', grass: 'green' }
-			}
-		});
-		```
-
-- `this.replaceState(newState)`
-
-	- Replaces the store's state with `newState` object.
-
-	- Similar to `setState` except it always erases the previous state before updating.
-
-		```javascript
-		Hoverboard({
-			getInitialState: function(){
-				return { sky: 'blue' };
-			},
-			onSomeAction: function(){
-				this.replaceState({ grass: 'green' });
-
-				// this.state is now: { grass: 'green' }
-			}
-		});
-		```
 
 #### Return value
 
-`Hoverboard(store)` will return an `actions` object.
+`Hoverboard(actions)` will return a `store` object.
 
-##### `actions` object methods
+##### `store` object methods
 
-- `actions.getState()`
+- `store.getState()` or `store()`
 
 	- Returns the store's current state.
 
-	- If a custom `store.getState()` is provided, it will be called here.
-
-		```javascript
-		state = actions.getState();
-		```
-
-- `unsubscribe = actions.getState(function(state) {})`
+- `unsubscribe = store.getState(function)` or `unsubscribe = store(function)`
 
 	- Adds a listener to the state of a store.
 	
@@ -285,7 +167,7 @@ actions = Hoverboard(store);
     - Returns an unsubscribe function. Call it to stop listening to the state.
 
 		```javascript
-		unsubscribe = actions.getState(function(state) {
+		unsubscribe = store.getState(function(state) {
 			alert(state.value);
 		});
         
@@ -293,20 +175,27 @@ actions = Hoverboard(store);
         unsubscribe();
 		```
 
-- `actions.handleSomeAction(arg1, arg2, ..., argN)`
+- `store.handleSomeAction(arg1, arg2, ..., argN)`
 
 	- Calls an action handler on the store, passing through any arguments.
 
-	- Only created for action handlers with a name like onAction (matching `/^on[A-Z]/`).
-	
 		```javascript
-		actions = Hoverboard({
-			onNotification: function(message) {
-				alert(message); // 123
+		store = Hoverboard({
+			add: function(state, number) {
+				return state + number;
+			},
+			reset: function() {
+				return 0;
 			}
 		});
 
-		actions.notification(123);
+		// start off at zero
+		store.reset();
+
+		store.add(5);
+		store.add(4);
+
+		result = store.getState(); // returns 9
 		```
 
 
@@ -317,7 +206,7 @@ actions = Hoverboard(store);
 Yes. Flux requires that data flows in one direction, and Hoverboard enforces that.
 
 When you call an action on a store, you can't get back a return value. The only way to get
-data out of a store is by calling `getState`. So this ensures that data flows following
+data out of a store is by registering a change listener. So this ensures that data flows following
 the `Action -> Dispatcher -> Store -> View` flow that is central to Flux.
 
 ---
@@ -339,65 +228,76 @@ to using React in your projects.
 
 ---
 
-*Q: Is Hoverboard isomorphic? Can I use it on a node.js server?*
+*Q: Is Hoverboard universal? Can I use it on a node.js server?*
 
 Yes, it can work on the server. You can add listeners to stores, and render the
-page once you have everything you need from the stores. You should probably unsubscribe
-from the store listeners once you've rendered the page, so you don't render it twice.
+page once you have everything you need from the stores. To be safe, you should probably unsubscribe from the store listeners once you've rendered the page, so you don't render it twice.
+
+If you want to be able to "re-hydrate" your stores after rendering on the server, you can
+add a simple action to do so like the following:
+
+```javascript
+store = Hoverboard({
+	rehydrate: function (state, newState) {
+		return newState;
+	}
+});
+
+store.rehydrate(storeData);
+```
 
 ---
 
 *Q: How does Hoverboard handle asynchronous loading of data from an API?*
 
-There are two ways to achieve this. One way is to load the API outside of the store, and call
-actions to pass in the loading state, data and/or error as it arrives:
+There are two ways to achieve this. One way is to load the API outside of the store, and call actions to pass in the loading state, data and/or error as it arrives:
 
 ```javascript
-var Store = Hoverboard({
-	onLoading: function(isLoading) {
-		this.setState({ isLoading: isLoading });
+var store = Hoverboard({
+	loading: function(state, isLoading) {
+		return { isLoading: isLoading };
 	},
-	onData: function(data) {
-		this.setState({ data: data });
+	data: function(state, data) {
+		return { data: data };
 	},
-	onError: function(error) {
-		this.setState({ error: error });
+	error: function(state, error) {
+		return { error: error };
 	}
 });
 
-Store.loading(true);
+store.loading(true);
 
-getDataFromAPI(function(error, data){
-	Store.loading(false);
+getDataFromAPI(params, function(error, data){
+	store.loading(false);
 
 	if (error) {
-		Store.error(error);
+		return store.error(error);
 	}
 
-	if (data) {
-		Store.data(data);
-	}
+	store.data(data);
 });
 ```
 
-Another way is to call the API from within your store itself. If you want to
-defer API calls until the last minute, a nice place to do this is from your
-`getInitialState` function, because it will only be called when the first action
-or `getState` call is made.
+Another way is to call the API from within your store itself.
 
 ```javascript
-var Store = Hoverboard({
-	getInitialState: function() {
-		var self = this;
-
-		getDataFromAPI(function(error, data){
-			self.setState({ isLoading: false, data: data, error: error });
+var store = Hoverboard({
+	load: function (state, params) {
+		getDataFromAPI(params, function (error, data) {
+			store.done(error, data);
 		});
 
-		return { isLoading: true, data: null, error: null };
+		return { isLoading: true, error: null, data: null };
+	},
+	done: function(state, error, data) {
+		return { isLoading: false, error: error, data: data };
 	}
 });
+
+store.load(params);
 ```
+
+You could also put the loading code into an action, and only trigger it when you need the data.
 
 ---
 
@@ -408,39 +308,40 @@ then you might want to have an items property that contains the list, and an ite
 that contains the item you need. Something like this:
 
 ```javascript
-var ItemStore = Hoverboard({
-	onItems: function (items) {
-		this.setState({ items: items });
-
-		// update item whenever list of items changes
-		this.updateItem();
+var itemStore = Hoverboard({
+	init: function (state, data) {
+		return data;
 	},
-	onViewById: function (id) {
-		this.setState({ id: id });
-
-		// update item whenever ID changes
-		this.updateItem();
+	// update item whenever ID changes
+	viewById: function (state, id) {
+		return {
+			item: state.items[id],
+			items: state.items
+		};
 	},
-	updateItem: function() {
-		var item = null;
-
-		if (this.state.id && this.state.items) {
-			// using underscore for this example for simplicity
-			item = _.find(this.state.items, { id: this.state.id });
+	viewAll: function (state) {
+		return {
+			items: state.items
 		}
-
-		this.setState({ item: item });
 	}
 });
 
-ItemStore.items([{ id: 123 /* ... */ }]);
+// initalize with data
+itemStore.init({ abc: 123, /* etc... */ });
 
 // getAll
-var items = ItemStore.getState().items;
+var items = itemStore().items;
 
 // getById
-ItemStore.viewById(123);
-var item = ItemStore.getState().item;
+itemStore.viewById(123);
+
+var state = itemStore.getState();
+
+if (state.item) {
+	// render single item
+} else {
+	// render list of items
+}
 ```
 
 ---
@@ -460,132 +361,65 @@ a change. Whenever one store changes, the other can update itself immediately.
 How would you avoid using `waitFor` in Hoverboard? Let's compare using an example from the
 [Facebook Flux Dispatcher tutorial](http://facebook.github.io/flux/docs/dispatcher.html):
 
-```javascript
-var flightDispatcher = new Dispatcher();
-
-// Keeps track of which country is selected
-var CountryStore = {country: null};
-
-// Keeps track of which city is selected
-var CityStore = {city: null};
-
-// Keeps track of the base flight price of the selected city
-var FlightPriceStore = {price: null};
-
-// When a user changes the selected city, we dispatch the payload:
-flightDispatcher.dispatch({
-  actionType: 'city-update',
-  selectedCity: 'paris'
-});
-
-// This payload is digested by CityStore:
-flightDispatcher.register(function(payload) {
-  if (payload.actionType === 'city-update') {
-    CityStore.city = payload.selectedCity;
-  }
-});
-
-// When the user selects a country, we dispatch the payload:
-flightDispatcher.dispatch({
-  actionType: 'country-update',
-  selectedCountry: 'australia'
-});
-
-// This payload is digested by both stores:
-CountryStore.dispatchToken = flightDispatcher.register(function(payload) {
-  if (payload.actionType === 'country-update') {
-    CountryStore.country = payload.selectedCountry;
-  }
-});
-
-// When the callback to update CountryStore is registered, we save a
-// reference to the returned token. Using this token with waitFor(),
-// we can guarantee that CountryStore is updated before the callback
-// that updates CityStore needs to query its data.
-CityStore.dispatchToken = flightDispatcher.register(function(payload) {
-  if (payload.actionType === 'country-update') {
-    // `CountryStore.country` may not be updated.
-    flightDispatcher.waitFor([CountryStore.dispatchToken]);
-    // `CountryStore.country` is now guaranteed to be updated.
-
-    // Select the default city for the new country
-    CityStore.city = getDefaultCityForCountry(CountryStore.country);
-  }
-});
-
-// The usage of waitFor() can be chained, for example:
-FlightPriceStore.dispatchToken =
-  flightDispatcher.register(function(payload) {
-    switch (payload.actionType) {
-      case 'country-update':
-      case 'city-update':
-        flightDispatcher.waitFor([CityStore.dispatchToken]);
-        FlightPriceStore.price =
-          getFlightPriceStore(CountryStore.country, CityStore.city);
-        break;
-  }
-});
-```
-
-Here's how the same example would work with Hoverboard:
+Here's how the example from the link above would work with Hoverboard:
 
 ```javascript
 // Keeps track of which country is selected
 var CountryStore = Hoverboard({
-	getInitialState: function () {
-		return { country: null };
+	init: function () {
+		return { country: null }
 	},
-	onUpdate: function (selectedCountry) {
-		this.setState({ country: selectedCountry });
+	update: function (state, selectedCountry) {
+		return { country: selectedCountry };
 	}
 });
+CountryStore.init();
 
 // Keeps track of which city is selected
 var CityStore = Hoverboard({
-	getInitialState: function () {
-		var self = this;
-
-		// listen to changes from the CountryStore
-		CountryStore.getState(function (state) {
-		    // Select the default city for the new country
-		    if (state.country) {
-				self.setState({
-					city: getDefaultCityForCountry(state.country)
-				});
-			}
-		});
-
+	init: function () {
 		return { city: null };
 	},
-	onUpdate: function (selectedCity) {
-		this.setState({ city: selectedCity });
+	update: function (state, selectedCity) {
+		return { city: selectedCity };
+	}
+});
+CityStore.init();
+
+// listen to the CountryStore
+CountryStore(function (countryState) {
+    // Select the default city for the new country
+    if (countryState.country && CityStore.getState().city === null) {
+		CityStore.update(getDefaultCityForCountry(countryState.country));
 	}
 });
 
 // Keeps track of the base flight price of the selected city
 var FlightPriceStore = Hoverboard({
-	getInitialState: function(){
-		var self = this;
-
-		// called when either country or city change
-		function updatePrice() {
-			var country = CountryStore.getState().country;
-			var city = CityStore.getState().city;
-
-			if (country && city) {
-				self.setState({
-					price: getFlightPriceStore(country, city)
-				});
-			}
+	init: function () {
+		return { price: null }
+	},
+	updatePrice: function (state, country, city) {
+		if (country && city) {
+			return {
+				price: getFlightPriceStore(country, city)
+			};
 		}
-
-		// listen to changes from both the country and city stores
-		CountryStore.getState(updatePrice);
-		CityStore.getState(updatePrice);
-
-		return { price: null };
-	} 
+	}
 });
+FlightPriceStore.init();
+
+// called when either country or city change
+function updateFlightPrice() {
+	var country = CountryStore().country;
+	var city = CityStore().city;
+
+	FlightPriceStore.updatePrice(country, city);
+}
+
+// listen to changes from both the country and city stores
+CountryStore(updateFlightPrice);
+CityStore(updateFlightPrice);
 
 // When a user changes the selected city, we call an action:
 CityStore.update('paris');

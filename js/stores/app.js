@@ -1,21 +1,8 @@
 // create a store for managing the app state
 // it will listen to other stores and assemble state data appropriately
-AppStore = Hoverboard(function () {
-	var self = this;
-
-	// every time these stores change, update the state
-	TodoStore.getState(update);
-	CompletedStore.getState(update);
-	ActiveStore.getState(update);
-	PageStore.getState(update);
-
-	// update the state whenever any properties change
-	function update() {
-		var page = PageStore.getState().page,
-			all = TodoStore.getState().list,
-			completed = CompletedStore.getState().list,
-			active = ActiveStore.getState().list,
-			todos;
+AppStore = Hoverboard({
+	update: function (state, page, all, completed, active) {
+		var todos;
 
 		// decide which todo list to show, depending on the page
 		if (page === 'active') {
@@ -29,7 +16,7 @@ AppStore = Hoverboard(function () {
 		}
 
 		// expose public state
-		self.setState({
+		return {
 			// which page we're currently on
 			page: page,
 
@@ -40,6 +27,22 @@ AppStore = Hoverboard(function () {
 			numTotal: all ? all.length : 0,
 			numCompleted: completed ? completed.length : 0,
 			numActive: active ? active.length : 0
-		});
+		};
 	}
 });
+
+// update the AppStore whenever any other stores change
+function update() {
+	var page = PageStore().page,
+		all = TodoStore().list,
+		completed = CompletedStore().list,
+		active = ActiveStore().list;
+
+	AppStore.update(page, all, completed, active);
+}
+
+// every time these stores change, update the state
+TodoStore(update);
+CompletedStore(update);
+ActiveStore(update);
+PageStore(update);

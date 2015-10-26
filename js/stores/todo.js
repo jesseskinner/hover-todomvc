@@ -1,115 +1,119 @@
+function updateItem(list, id, props) {
+	var item = _.find(list, { id: id }),
+		key;
+
+	if (item) {
+		for (key in props) {
+			item[key] = props[key];
+		}
+	}
+
+	return list;
+}
+
 // create a store to manage the full list of todos
 TodoStore = Hoverboard({
-	// private variable we'll increment to generate IDs
-	_nextId: 0,
+	init: function (state, list) {
+		// TodoStore.init(list) initialize the state with a todo list (ie. from storage)
+		if (list && list.length) {
+			return {
+				// get the id counter to point at one more than the max id
+				nextId: Math.max.apply(Math, _.pluck(list, 'id')) + 1,
 
-	// return the initial (empty) list of todos
-	getInitialState: function () {
+				// start off with a provided list
+				list: list
+			};
+		}
+
+		// otherwise, use an empty list
 		return {
+			nextId: 0,
 			list: []
 		};
 	},
 
-	// private method to find an item with its id
-	getItem: function (id) {
-		return _.find(this.state.list, { id: id });
-	},
-
-	// private method to update properties on an item in the list
-	updateItem: function (id, props) {
-		var item = this.getItem(id),
-			key;
-
-		if (item) {
-			for (key in props) {
-				item[key] = props[key];
-			}
-
-			this.setState({
-				list: this.state.list
-			});
-		}
-	},
-
-	// TodoStore.init(list) initialize the state with a todo list (ie. from storage)
-	onInit: function (list) {
-		if (list && list.length) {
-			// get the id counter to point at one more than the max id
-			this._nextId = Math.max.apply(Math, _.pluck(list, 'id')) + 1;
-
-			// start off with a provided list
-			this.setState({ list: list });
-		}
-	},
-
 	// TodoStore.add('hello') - add an item to the top of the list
-	onAdd: function (text) {
-		this.state.list.unshift({
-			id: this._nextId++,
-			text: text,
-			completed: false,
-			editing: false
-		});
+	add: function (state, text) {
+		var list = [
+				{
+					id: state.nextId,
+					text: text,
+					completed: false,
+					editing: false
+				}
+			];
 
-		this.setState({
-			list: this.state.list
-		});
+		return {
+			nextId: state.nextId + 1,
+			list: list.concat(state.list)
+		};
 	},
 
 	// TodoStore.edit(id) - turn on "editing" for an item
-	onEdit: function (id) {
-		this.updateItem(id, { editing: true });
+	edit: function (state, id) {
+		return {
+			list: updateItem(state.list, id, { editing: true })
+		};
 	},
 
 	// TodoStore.cancelEdit(id) - turn off "editing" for an item
-	onCancelEdit: function (id) {
-		this.updateItem(id, { editing: false });
+	cancelEdit: function (state, id) {
+		return {
+			list: updateItem(state.list, id, { editing: false })
+		};
 	},
 
 	// TodoStore.save(id, text) - change the text and turn off "editing" for an item
-	onSave: function (id, text) {
-		this.updateItem(id, {
-			editing: false,
-			text: text
-		});
+	save: function (state, id, text) {
+		return {
+			list: updateItem(state.list, id, {
+				editing: false,
+				text: text
+			})
+		};
 	},
 
 	// TodoStore.remove(id) - remove an item from the list
-	onRemove: function (id) {
-		this.setState({
-			list: _.reject(this.state.list, { id: id })
-		});
+	remove: function (state, id) {
+		return {
+			list: _.reject(state.list, { id: id })
+		};
 	},
 
 	// TodoStore.toggleCompleted(id) - toggle the "completed" flag on an item
-	onToggleCompleted: function (id) {
-		var item = this.getItem(id);
+	toggleCompleted: function (state, id) {
+		var item = _.find(state.list, { id: id });
 
-		item.completed = !item.completed;
+		if (item) {
+			item.completed = !item.completed;
+		}
 
-		this.setState({
-			list: this.state.list
-		});
+		return {
+			list: state.list
+		};
 	},
 
 	// TodoStore.clearCompleted() - remove all completed items from the list
-	onClearCompleted: function () {
-		this.setState({
-			list: _.filter(this.state.list, { completed: false })
-		});
+	clearCompleted: function (state) {
+		return {
+			list: _.filter(state.list, { completed: false })
+		};
 	},
 
 	// TodoStore.toggleAllCompleted() - toggle the "completed" flag on all items
-	onToggleAllCompleted: function () {
+	toggleAllCompleted: function (state) {
 		// if any active items, set all to complete. otherwise, set all active.
-		var anyActive = !!_.find(this.state.list, { completed: false });
+		var anyActive = !!_.find(state.list, { completed: false });
 
-		_.each(this.state.list, function (item) {
+		_.each(state.list, function (item) {
 			item.completed = anyActive;
 		});
 
-		this.setState({
-			list: this.state.list
-		});
+		return {
+			list: state.list
+		};
 	}
 });
+
+// start off with default state
+TodoStore.init();

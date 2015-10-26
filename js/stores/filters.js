@@ -1,21 +1,18 @@
-// create a store class to provide filters on the TodoStore list
-function FilterList() {}
-
-FilterList.prototype.onInit = function (filter) {
-	// update our state whenever the TodoStore changes state
-	TodoStore.getState(function (state) {
-		var all = state.list;
-
-		this.setState({
-			list: _.filter(all, filter)
-		});
-	}.bind(this));
+// create a simple store definition that allows setting a single list property
+var ListStore = {
+	list: function (state, list) {
+		return { list: list };
+	}
 };
 
-// create a store to contain the active todos
-ActiveStore = Hoverboard(FilterList);
-ActiveStore.init({ completed: false });
+// create stores to contain the active and completed todos
+ActiveStore = Hoverboard(ListStore);
+CompletedStore = Hoverboard(ListStore);
 
-// create a store to contain the completed todos
-CompletedStore = Hoverboard(FilterList);
-CompletedStore.init({ completed: true });
+TodoStore.getState(function (state) {
+	var all = state.list;
+
+	// when the TodoStore changes, set the lists in these two stores with filtered lists
+	ActiveStore.list(_.filter(all, { completed: false }));
+	CompletedStore.list(_.filter(all, { completed: true }));
+});

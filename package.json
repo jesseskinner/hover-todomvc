@@ -1,6 +1,6 @@
 {
   "name": "hoverboard-todomvc",
-  "version": "0.1.0",
+  "version": "2.0.2",
   "description": "Implementing TodoMVC with hoverboard and React.",
   "main": "index.html",
   "scripts": {

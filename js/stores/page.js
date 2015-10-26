@@ -1,8 +1,11 @@
 // keep track of the current page
 PageStore = Hoverboard({
-	onLoad: function (page) {
-		this.setState({
+	load: function (state, page) {
+		return {
 			page: page
-		});
+		};
 	}
 });
+
+// start off on 'all' page
+PageStore.load('all');
