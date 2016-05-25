@@ -1,9 +1,7 @@
 // keep track of the current page
-var PageStore = Hoverboard({
+var PageStore = Hover({
 	load: function (state, page) {
-		return {
-			page: page
-		};
+		return page;
 	}
 });
 

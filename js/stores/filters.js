@@ -1,18 +1,12 @@
-// create a simple store definition that allows setting a single list property
-var ListStore = {
-	list: function (state, list) {
-		return { list: list };
-	}
-};
-
 // create stores to contain the active and completed todos
-var ActiveStore = Hoverboard(ListStore);
-var CompletedStore = Hoverboard(ListStore);
+var ActiveStore = Hover.compose(TodoStore, function (state) {
+	return state.list.filter(function (item) {
+		return item.completed === false;
+	});
+});
 
-TodoStore.getState(function (state) {
-	var all = state.list;
-
-	// when the TodoStore changes, set the lists in these two stores with filtered lists
-	ActiveStore.list(_.filter(all, { completed: false }));
-	CompletedStore.list(_.filter(all, { completed: true }));
+var CompletedStore = Hover.compose(TodoStore, function (state) {
+	return state.list.filter(function (item) {
+		return item.completed === true;
+	});
 });

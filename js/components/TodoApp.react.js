@@ -23,17 +23,17 @@ window.TodoApp = React.createClass({
 					<h1>todos</h1>
 					<input onKeyPress={this.onAddKeyPress} id="new-todo" placeholder="What needs to be done?" autoFocus/>
 				</header>
-				
+
 				{/* This section should be hidden by default and shown when there are todos */}
 				{this.props.numTotal > 0 && (
 					<section id="main">
 						<input onClick={this.onToggleAllClick}
 							id="toggle-all" type="checkbox"/>
-						
+
 						<label htmlFor="toggle-all">Mark all as complete</label>
-						
+
 						<ul id="todo-list">
-						{this.props.todos.map(function (item) {
+						{this.props.todos.map(function (item, i) {
 							return <TodoItem key={item.id} item={item} />
 						})}
 						</ul>
@@ -49,7 +49,7 @@ window.TodoApp = React.createClass({
 								this.props.numActive !== 1 ? 'items' : 'item'
 							} left
 						</span>
-						
+
 						<ul id="filters">
 							<li>
 								<a className={this.props.page === 'all' && 'selected'}

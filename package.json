@@ -1,24 +1,24 @@
 {
-  "name": "hoverboard-todomvc",
-  "version": "2.0.2",
-  "description": "Implementing TodoMVC with hoverboard and React.",
+  "name": "hover-todomvc",
+  "version": "3.0.0",
+  "description": "Implementing TodoMVC with Hover and React.",
   "main": "index.html",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/jesseskinner/hoverboard-todomvc.git"
+    "url": "https://github.com/jesseskinner/hover-todomvc.git"
   },
   "author": "",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/jesseskinner/hoverboard-todomvc/issues"
+    "url": "https://github.com/jesseskinner/hover-todomvc/issues"
   },
-  "homepage": "https://github.com/jesseskinner/hoverboard-todomvc",
+  "homepage": "https://github.com/jesseskinner/hover-todomvc",
   "dependencies": {
     "babel-core": "^5.8.29",
-    "hoverboard": "^2.0.2",
+    "hover": "3.0.0-alpha.4",
     "lodash": "^3.10.1",
     "page": "^1.6.4",
     "react": "^0.14.0",

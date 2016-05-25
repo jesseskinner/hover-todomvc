@@ -1,13 +1,13 @@
-# Hoverboard + ReactJS TodoMVC Example
+# Hover + ReactJS TodoMVC Example
 
 > A simple and very terse Flux implementation.
 
-> _[Hoverboard](https://github.com/jesseskinner/hoverboard)_
+> _[Hover](https://github.com/jesseskinner/hover)_
 
 
-## Learning Hoverboard
+## Learning Hover
 
-The [Hoverboard GitHub repository](https://github.com/jesseskinner/hoverboard) is a great resource for getting started.
+The [Hover GitHub repository](https://github.com/jesseskinner/hover) is a great resource for getting started.
 
 
 ## Running
